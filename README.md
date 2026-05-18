@@ -2,12 +2,14 @@
 
 Commerce platform for AI shopping agents on Kite Mainnet.
 
-## Phase 1: Merchant Onboarding + Product CRUD
+## Features
 
-- Merchant registration
-- Product listing with categories
+- Merchant registration and product listing
+- Product catalog with categories
+- Checkout with x402 payments
+- Digital and physical product support
+- Merchant dashboard with analytics
 - Order management
-- Digital, physical, and service product types
 
 ## Development
 
