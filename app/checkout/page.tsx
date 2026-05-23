@@ -6,14 +6,14 @@ export const metadata = {
 
 export default function CheckoutPage() {
   return (
-    <div className="container max-w-md py-6">
+    <div className="mx-auto w-full max-w-md px-4 py-8 sm:px-6">
       <Card>
         <CardHeader>
           <CardTitle>Checkout</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground text-center py-4">
-            No items in cart.
+            Checkout requires product selection and `SHOPKITE_X402_CONFIG_URL`.
           </p>
         </CardContent>
       </Card>
