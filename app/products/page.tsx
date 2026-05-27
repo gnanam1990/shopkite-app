@@ -1,5 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import Link from "next/link";
 import { Plus, ShoppingBag } from "lucide-react";
 import { getShopKiteStatus } from "@/lib/shopkite-data";
