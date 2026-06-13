@@ -62,16 +62,34 @@ export async function proxyOrders(request: Request) {
     };
   }
 
-  const response = await fetch(ordersUrl, {
-    method: request.method,
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: request.method === "GET" ? undefined : await request.text(),
-  });
+  let response: Response;
+  try {
+    response = await fetch(ordersUrl, {
+      method: request.method,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: request.method === "GET" ? undefined : await request.text(),
+    });
+  } catch {
+    return {
+      status: 502,
+      body: { error: "Order API is unreachable." },
+    };
+  }
+
+  const text = await response.text();
+  let body: unknown;
+  try {
+    body = text ? JSON.parse(text) : null;
+  } catch {
+    // Upstream returned a non-JSON body (e.g. a gateway error page).
+    // Preserve its status instead of throwing and masking it as a 500.
+    body = { error: "Order API returned an invalid response.", upstream_body: text };
+  }
 
   return {
     status: response.status,
-    body: await response.json(),
+    body,
   };
 }
