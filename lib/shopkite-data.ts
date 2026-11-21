@@ -1,3 +1,5 @@
+import type { Order } from "@/lib/types";
+
 export const SHOPKITE_ENVS = [
   "SHOPKITE_PRODUCTS_URL",
   "SHOPKITE_MERCHANTS_URL",
@@ -74,4 +76,57 @@ export async function proxyOrders(request: Request) {
     status: response.status,
     body: await response.json(),
   };
+}
+
+const SETTLED_ORDER_STATUSES = new Set(["paid", "delivered"]);
+
+export async function getOrderStats() {
+  const ordersUrl = process.env.SHOPKITE_ORDERS_URL;
+  if (!ordersUrl) {
+    return {
+      status: 503,
+      body: {
+        error: "no live data source",
+        reason: "SHOPKITE_ORDERS_URL is not configured. Fake orders are disabled.",
+      },
+    };
+  }
+
+  try {
+    const response = await fetch(ordersUrl, { cache: "no-store" });
+    if (!response.ok) {
+      throw new Error(`Order API responded with HTTP ${response.status}`);
+    }
+
+    const data: unknown = await response.json();
+    const orders = Array.isArray(data)
+      ? data
+      : (data as { orders?: unknown } | null)?.orders;
+    if (!Array.isArray(orders)) {
+      throw new Error("Order API did not return a list of orders");
+    }
+
+    const settled = (orders as Partial<Order>[]).filter(
+      (order) => order.status && SETTLED_ORDER_STATUSES.has(order.status),
+    );
+    const gmv = settled.reduce((sum, order) => sum + Number(order.amount_usdc ?? 0), 0);
+
+    return {
+      status: 200,
+      body: {
+        orders: settled.length,
+        gmv: Number.isFinite(gmv) ? Math.round(gmv * 1e6) / 1e6 : null,
+        source: "ShopKite order API (paid + delivered orders, USDC)",
+        as_of: new Date().toISOString(),
+      },
+    };
+  } catch (error) {
+    return {
+      status: 503,
+      body: {
+        error: "no live data source",
+        reason: error instanceof Error ? error.message : "Order API request failed",
+      },
+    };
+  }
 }
